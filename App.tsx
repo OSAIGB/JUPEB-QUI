@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { quizQuestions } from './constants';
 import { Question, UserAnswers } from './types';
 
@@ -16,18 +16,51 @@ const XIcon: React.FC<{ className?: string }> = ({ className }) => (
   </svg>
 );
 
+const TimerIcon: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${className}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+);
+
+
 interface QuizViewProps {
   questions: Question[];
   userAnswers: UserAnswers;
   onAnswerSelect: (questionId: number, optionIndex: number) => void;
   onSubmit: () => void;
+  timeLeft: number;
+  answeredCount: number;
+  totalQuestions: number;
 }
 
-const QuizView: React.FC<QuizViewProps> = ({ questions, userAnswers, onAnswerSelect, onSubmit }) => {
+const QuizView: React.FC<QuizViewProps> = ({ questions, userAnswers, onAnswerSelect, onSubmit, timeLeft, answeredCount, totalQuestions }) => {
+    const minutes = Math.floor(timeLeft / 60);
+    const seconds = timeLeft % 60;
+    const formattedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    const progressPercentage = totalQuestions > 0 ? (answeredCount / totalQuestions) * 100 : 0;
+    
   return (
     <>
+        <div className="mb-6">
+            <div className="flex justify-between items-center mb-2 px-1">
+                <div className="flex items-center space-x-2" aria-label={`Time left: ${minutes} minutes and ${seconds} seconds`}>
+                    <TimerIcon className="text-indigo-400" />
+                    <span className="text-lg font-bold text-slate-200 tabular-nums">{formattedTime}</span>
+                </div>
+                <div className="text-sm font-medium text-slate-300">
+                    {answeredCount} / {totalQuestions} Answered
+                </div>
+            </div>
+            <div className="w-full bg-slate-700 rounded-full h-2.5" role="progressbar" aria-valuenow={answeredCount} aria-valuemin={0} aria-valuemax={totalQuestions}>
+                <div 
+                    className="bg-gradient-to-r from-indigo-500 to-cyan-400 h-2.5 rounded-full transition-all duration-300 ease-out" 
+                    style={{ width: `${progressPercentage}%` }}
+                ></div>
+            </div>
+        </div>
+      <div className="max-h-[60vh] overflow-y-auto pr-2 -mr-2">
       {questions.map((q, index) => (
-        <div key={q.id} className="mb-8 animate-fade-in" style={{ animationDelay: `${index * 100}ms` }}>
+        <div key={q.id} className="mb-8 animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
           <p className="text-xl text-slate-300 mb-4 font-semibold">
             <span className="text-indigo-400 font-bold mr-2">{index + 1}.</span>
             {q.questionText}
@@ -44,6 +77,7 @@ const QuizView: React.FC<QuizViewProps> = ({ questions, userAnswers, onAnswerSel
                       ? 'bg-indigo-600 text-white ring-2 ring-indigo-300 shadow-lg'
                       : 'bg-slate-700 hover:bg-slate-600 text-slate-200'
                   }`}
+                  aria-pressed={isSelected}
                 >
                   {String.fromCharCode(97 + optionIndex)}. {option}
                 </button>
@@ -52,6 +86,7 @@ const QuizView: React.FC<QuizViewProps> = ({ questions, userAnswers, onAnswerSel
           </div>
         </div>
       ))}
+      </div>
       <div className="mt-8 flex justify-center">
         <button
           onClick={onSubmit}
@@ -128,6 +163,26 @@ const ResultsView: React.FC<ResultsViewProps> = ({ questions, userAnswers, score
 const App: React.FC = () => {
   const [userAnswers, setUserAnswers] = useState<UserAnswers>({});
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
+  const [timeLeft, setTimeLeft] = useState(30 * 60); // 30 minutes in seconds
+
+  const handleSubmit = useCallback(() => {
+    setIsSubmitted(true);
+  }, []);
+
+  useEffect(() => {
+    if (isSubmitted) return;
+
+    if (timeLeft <= 0) {
+      handleSubmit();
+      return;
+    }
+
+    const timerId = setInterval(() => {
+      setTimeLeft((prevTime) => prevTime > 0 ? prevTime - 1 : 0);
+    }, 1000);
+
+    return () => clearInterval(timerId);
+  }, [timeLeft, isSubmitted, handleSubmit]);
 
   const handleAnswerSelect = (questionId: number, optionIndex: number) => {
     setUserAnswers((prev) => ({
@@ -145,16 +200,14 @@ const App: React.FC = () => {
       return total;
     }, 0);
   }, [isSubmitted, userAnswers]);
-
-
-  const handleSubmit = () => {
-    setIsSubmitted(true);
-  };
   
   const handleRestart = () => {
     setUserAnswers({});
     setIsSubmitted(false);
+    setTimeLeft(30 * 60); // Reset timer
   };
+
+  const answeredCount = Object.keys(userAnswers).length;
 
   return (
     <div className="min-h-screen text-white flex flex-col items-center justify-center p-4 font-sans bg-slate-900">
@@ -175,6 +228,9 @@ const App: React.FC = () => {
             userAnswers={userAnswers}
             onAnswerSelect={handleAnswerSelect}
             onSubmit={handleSubmit}
+            timeLeft={timeLeft}
+            answeredCount={answeredCount}
+            totalQuestions={quizQuestions.length}
           />
         )}
       </main>
