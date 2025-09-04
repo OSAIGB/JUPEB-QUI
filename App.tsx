@@ -44,16 +44,16 @@ const QuizView: React.FC<QuizViewProps> = ({ questions, userAnswers, onAnswerSel
         <div className="mb-6">
             <div className="flex justify-between items-center mb-2 px-1">
                 <div className="flex items-center space-x-2" aria-label={`Time left: ${minutes} minutes and ${seconds} seconds`}>
-                    <TimerIcon className="text-indigo-400" />
-                    <span className="text-lg font-bold text-slate-200 tabular-nums">{formattedTime}</span>
+                    <TimerIcon className="text-indigo-600" />
+                    <span className="text-lg font-bold text-gray-700 tabular-nums">{formattedTime}</span>
                 </div>
-                <div className="text-sm font-medium text-slate-300">
+                <div className="text-sm font-medium text-gray-500">
                     {answeredCount} / {totalQuestions} Answered
                 </div>
             </div>
-            <div className="w-full bg-slate-700 rounded-full h-2.5" role="progressbar" aria-valuenow={answeredCount} aria-valuemin={0} aria-valuemax={totalQuestions}>
+            <div className="w-full bg-gray-200 rounded-full h-2.5" role="progressbar" aria-valuenow={answeredCount} aria-valuemin={0} aria-valuemax={totalQuestions}>
                 <div 
-                    className="bg-gradient-to-r from-indigo-500 to-cyan-400 h-2.5 rounded-full transition-all duration-300 ease-out" 
+                    className="bg-gradient-to-r from-indigo-500 to-cyan-500 h-2.5 rounded-full transition-all duration-300 ease-out" 
                     style={{ width: `${progressPercentage}%` }}
                 ></div>
             </div>
@@ -61,8 +61,8 @@ const QuizView: React.FC<QuizViewProps> = ({ questions, userAnswers, onAnswerSel
       <div className="max-h-[60vh] overflow-y-auto pr-2 -mr-2">
       {questions.map((q, index) => (
         <div key={q.id} className="mb-8 animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
-          <p className="text-xl text-slate-300 mb-4 font-semibold">
-            <span className="text-indigo-400 font-bold mr-2">{index + 1}.</span>
+          <p className="text-xl text-gray-800 mb-4 font-semibold">
+            <span className="text-indigo-600 font-bold mr-2">{index + 1}.</span>
             {q.questionText}
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -72,10 +72,10 @@ const QuizView: React.FC<QuizViewProps> = ({ questions, userAnswers, onAnswerSel
                 <button
                   key={optionIndex}
                   onClick={() => onAnswerSelect(q.id, optionIndex)}
-                  className={`p-4 rounded-lg text-left transition-all duration-300 transform hover:-translate-y-1 ${
+                  className={`p-4 rounded-lg text-left transition-all duration-200 transform hover:-translate-y-0.5 border ${
                     isSelected
-                      ? 'bg-indigo-600 text-white ring-2 ring-indigo-300 shadow-lg'
-                      : 'bg-slate-700 hover:bg-slate-600 text-slate-200'
+                      ? 'bg-indigo-600 text-white ring-2 ring-indigo-400 shadow-lg border-transparent'
+                      : 'bg-white hover:bg-indigo-50 text-gray-700 border-gray-300 hover:border-indigo-400'
                   }`}
                   aria-pressed={isSelected}
                 >
@@ -109,16 +109,16 @@ interface ResultsViewProps {
 const ResultsView: React.FC<ResultsViewProps> = ({ questions, userAnswers, score, onRestart }) => {
     const percentage = Math.round((score / questions.length) * 100);
     const getResultColor = () => {
-        if (percentage >= 80) return 'text-emerald-400';
-        if (percentage >= 50) return 'text-yellow-400';
-        return 'text-rose-400';
+        if (percentage >= 80) return 'text-emerald-500';
+        if (percentage >= 50) return 'text-yellow-500';
+        return 'text-rose-500';
     };
 
   return (
     <div className="animate-fade-in text-center">
-      <h2 className="text-3xl font-bold mb-4">Quiz Completed!</h2>
-      <p className={`text-7xl font-extrabold ${getResultColor()}`}>{percentage}%</p>
-      <p className="text-xl text-slate-300 mb-8">
+      <h2 className="text-3xl font-bold mb-2">Quiz Completed!</h2>
+      <p className={`text-7xl font-extrabold mb-2 ${getResultColor()}`}>{percentage}%</p>
+      <p className="text-xl text-gray-600 mb-8">
         You answered {score} out of {questions.length} questions correctly.
       </p>
       
@@ -133,15 +133,15 @@ const ResultsView: React.FC<ResultsViewProps> = ({ questions, userAnswers, score
             <div
               key={q.id}
               className={`p-4 rounded-lg border-l-4 ${
-                isCorrect ? 'bg-emerald-900/50 border-emerald-500' : 'bg-rose-900/50 border-rose-500'
+                isCorrect ? 'bg-emerald-50 border-emerald-400' : 'bg-rose-50 border-rose-400'
               }`}
             >
-              <p className="font-semibold text-slate-300 mb-2">{index + 1}. {q.questionText}</p>
-              <div className="flex items-center space-x-3 text-sm">
-                {isCorrect ? <CheckIcon className="text-emerald-400 flex-shrink-0" /> : <XIcon className="text-rose-400 flex-shrink-0" />}
-                <div>
-                    <p>Your answer: <span className="font-medium">{userAnswerText}</span></p>
-                    {!isCorrect && <p>Correct answer: <span className="font-medium text-emerald-400">{correctAnswerText}</span></p>}
+              <p className="font-semibold text-gray-800 mb-2">{index + 1}. {q.questionText}</p>
+              <div className="flex items-start space-x-3 text-sm">
+                {isCorrect ? <CheckIcon className="text-emerald-500 flex-shrink-0 mt-1" /> : <XIcon className="text-rose-500 flex-shrink-0 mt-1" />}
+                <div className="text-gray-700">
+                    <p>Your answer: <span className="font-medium text-gray-900">{userAnswerText}</span></p>
+                    {!isCorrect && <p>Correct answer: <span className="font-medium text-emerald-600">{correctAnswerText}</span></p>}
                 </div>
               </div>
             </div>
@@ -210,9 +210,9 @@ const App: React.FC = () => {
   const answeredCount = Object.keys(userAnswers).length;
 
   return (
-    <div className="min-h-screen text-white flex flex-col items-center justify-center p-4 font-sans bg-slate-900">
-      <main className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 p-6 md:p-10 rounded-2xl shadow-2xl w-full max-w-4xl my-8">
-        <h1 className="text-3xl md:text-4xl font-bold text-center mb-8 text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-300">
+    <div className="min-h-screen text-gray-800 flex flex-col items-center justify-center p-4 font-sans">
+      <main className="bg-white/80 backdrop-blur-sm border border-gray-200 p-6 md:p-10 rounded-2xl shadow-lg w-full max-w-4xl my-8">
+        <h1 className="text-2xl md:text-3xl font-bold text-center mb-6 text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-cyan-400">
           JUPEB QUESTIONS MINI QUIZ
         </h1>
         {isSubmitted ? (
